@@ -1,6 +1,3 @@
-
-
-
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -21,14 +18,29 @@ lynx = np.array([
     [201.18, -100.58], [183.20, -99.42], [221.07, -73.68], [253.25, -24.56], [222.01, -23.39],
     [251.36, -1.17], [262.72, 24.56], [234.32, 25.73], [214.44, 42.11], [202.13, 60.82],
     [220.12, 101.75], [234.32, 160.23], [240.00, 230.41], [232.43, 316.96],
-]).T  # shape (2, 74): row 0 = x, row 1 = y
+]).T
 
 print("Lynx shape:", lynx.shape)
+
+
+def multiply(A, B):
+    rows = A.shape[0]
+    cols = B.shape[1]
+    inner = A.shape[1]
+
+    result = np.zeros((rows, cols))
+    for i in range(rows):
+        for j in range(cols):
+            total = 0
+            for k in range(inner):
+                total = total + A[i][k] * B[k][j]
+            result[i][j] = total
+    return result
+
 
 def show(original, transformed, matrix, title="Transformation"):
     print(f"{title}\nMatrix:\n{np.round(matrix, 3)}\n")
 
-    # axis limits big enough for both shapes
     lim = max(np.abs(original).max(), np.abs(transformed).max()) * 1.1
 
     fig, axes = plt.subplots(1, 2, figsize=(10, 5))
@@ -50,33 +62,49 @@ def show(original, transformed, matrix, title="Transformation"):
 
 def stretch(X, a, b):
     X = X.copy()
+
     A = np.array([[a, 0],
                   [0, b]])
-    result = A @ X
+
+    result = multiply(A, X)
     return result, A
 
 
 def shear(X, a, b):
     X = X.copy()
+
     A = np.array([[1, a],
                   [b, 1]])
-    result = A @ X
+
+    result = multiply(A, X)
     return result, A
 
 
 def reflection(X, a, b):
     X = X.copy()
-    A = np.array([[a**2 - b**2, 2 * a * b],
-                  [2 * a * b, b**2 - a**2]]) / (a**2 + b**2)
-    result = A @ X
+
+    length_squared = a**2 + b**2
+    m11 = (a**2 - b**2) / length_squared
+    m12 = (2 * a * b) / length_squared
+    m22 = (b**2 - a**2) / length_squared
+
+    A = np.array([[m11, m12],
+                  [m12, m22]])
+
+    result = multiply(A, X)
     return result, A
 
 
 def rotation(X, theta):
     X = X.copy()
-    A = np.array([[np.cos(theta), -np.sin(theta)],
-                  [np.sin(theta), np.cos(theta)]])
-    result = A @ X
+
+    c = np.cos(theta)
+    s = np.sin(theta)
+
+    A = np.array([[c, -s],
+                  [s, c]])
+
+    result = multiply(A, X)
     return result, A
 
 
@@ -130,10 +158,6 @@ result, A = rotation(lynx, np.pi / 6)
 show(lynx, result, A, "Rotation 30°")
 
 
-# %% [markdown]
-# ## Task 2. Combination of Stretch, Shear and Rotation in different orders
-
-# %%
 def apply_in_order(X, order):
     current = X.copy()
     total = np.eye(2)
@@ -147,20 +171,14 @@ def apply_in_order(X, order):
             new, A = rotation(current, np.pi / 4)
 
         show(current, new, A, f"Step: {name}")
-        total = A @ total
+        total = multiply(A, total)
         current = new
 
     show(X, current, total, "Combined: " + " -> ".join(order))
 
 
-# %%
 apply_in_order(lynx, ["stretch", "shear", "rotation"])
 apply_in_order(lynx, ["rotation", "shear", "stretch"])
 apply_in_order(lynx, ["shear", "rotation", "stretch"])
 apply_in_order(lynx, ["stretch", "rotation", "shear"])
 
-# %% [markdown]
-# ### Conclusion
-# Yes, the final result depends on the order: the same three matrices give
-# different combined matrices and different pictures, because matrix
-# multiplication is not commutative (A @ B != B @ A).

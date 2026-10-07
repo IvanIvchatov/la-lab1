@@ -4,8 +4,8 @@ Applied Linear Algebra, KSE, Autumn 2026/2027.
 
 ## Structure
 - `lab1_part1.py` — Part 1 (2D): stretch, shear, reflection, rotation + compositions (Tasks 1–2)
-- `lab1_part2.py` — Part 2 (3D): rotations of a ModelNet40 model (Tasks 3–4) — *to do*
-- `data/` — ModelNet40 `.off` files (not committed, download from Kaggle)
+- `lab1_part2.py` — Part 2 (3D): rotations of a ModelNet40 model (Tasks 3–4)
+- `data/` — ModelNet40 `.off` files (not committed, download from Kaggle; part 2 uses `data/airplane_0001.off`)
 
 ## Setup
 ```bash
