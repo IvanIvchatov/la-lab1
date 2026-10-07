@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -45,7 +46,7 @@ def read_off(path):
     return np.array(vertices).T, np.array(faces)
 
 
-PATH = "data/airplane_0001.off"
+PATH = os.path.join(os.path.dirname(__file__), "plane", "airplane_0001.off")
 
 model, faces = read_off(PATH)
 

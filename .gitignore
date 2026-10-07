@@ -5,6 +5,3 @@ venv/
 .DS_Store
 .idea/
 .vscode/
-# ModelNet40 dataset is large — don't commit it
-data/
-*.off
