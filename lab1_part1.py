@@ -1,20 +1,10 @@
-# %% [markdown]
-# # Lab 1. Linear Transformations — Part 1 (2D)
-# Applied Linear Algebra, KSE, Autumn 2026/2027
-#
-# Rules: only NumPy (matrices) and Matplotlib (plots).
-# No ready-made transformation functions from libraries.
 
-# %%
+
+
 import numpy as np
 import matplotlib.pyplot as plt
 
-# %% [markdown]
-# ## Data: KSE Lynx silhouette (from the lab PDF)
-# Each row here is a point (x, y). We transpose it so that the matrix has
-# 2 rows (x and y) and each column is one point — as in the theory: A @ L = L'.
 
-# %%
 lynx = np.array([
     [209.70, 368.42], [157.63, 332.16], [118.82, 284.21], [80.95, 224.56], [43.08, 244.44],
     [20.36, 266.67], [-4.26, 293.57], [2.37, 263.16], [-20.36, 292.40], [-39.29, 299.42],
@@ -35,15 +25,11 @@ lynx = np.array([
 
 print("Lynx shape:", lynx.shape)
 
-
-# %% [markdown]
-# ## Helper: draw original vs transformed shape + print the matrix
-
-# %%
 def show(original, transformed, matrix, title="Transformation"):
-    """Draw the original (grey) and transformed (colored) shapes side by side
-    and print the transformation matrix."""
     print(f"{title}\nMatrix:\n{np.round(matrix, 3)}\n")
+
+    # axis limits big enough for both shapes
+    lim = max(np.abs(original).max(), np.abs(transformed).max()) * 1.1
 
     fig, axes = plt.subplots(1, 2, figsize=(10, 5))
     for ax, pts, color, name in [
@@ -54,74 +40,127 @@ def show(original, transformed, matrix, title="Transformation"):
         ax.axhline(0, color="black", linewidth=0.5)
         ax.axvline(0, color="black", linewidth=0.5)
         ax.set_aspect("equal")
-        ax.set_xlim(-700, 700)
-        ax.set_ylim(-700, 700)
+        ax.set_xlim(-lim, lim)
+        ax.set_ylim(-lim, lim)
         ax.grid(alpha=0.3)
         ax.set_title(name)
     plt.tight_layout()
     plt.show()
 
 
-# %% [markdown]
-# ## Task 1. Functions for each linear transformation
-# Each function:
-#   1. copies X (X.copy()),
-#   2. builds the 2x2 matrix,
-#   3. multiplies matrix @ X,
-#   4. returns (result, matrix) — the matrix is needed to print it.
-
-# %%
 def stretch(X, a, b):
-    """Stretch by a along x and by b along y.  Matrix: [[a, 0], [0, b]]"""
     X = X.copy()
-    # TODO: build matrix A
-    # TODO: compute result = A @ X
-    raise NotImplementedError
+    A = np.array([[a, 0],
+                  [0, b]])
+    result = A @ X
+    return result, A
 
 
 def shear(X, a, b):
-    """Shear. Matrix: [[1, a], [b, 1]]"""
     X = X.copy()
-    # TODO
-    raise NotImplementedError
+    A = np.array([[1, a],
+                  [b, 1]])
+    result = A @ X
+    return result, A
 
 
 def reflection(X, a, b):
-    """Reflection about the line spanned by vector (a, b).
-    Matrix: 1/(a^2+b^2) * [[a^2-b^2, 2ab], [2ab, b^2-a^2]]"""
     X = X.copy()
-    # TODO
-    raise NotImplementedError
+    A = np.array([[a**2 - b**2, 2 * a * b],
+                  [2 * a * b, b**2 - a**2]]) / (a**2 + b**2)
+    result = A @ X
+    return result, A
 
 
 def rotation(X, theta):
-    """Counterclockwise rotation by theta radians.
-    Matrix: [[cos, -sin], [sin, cos]]"""
     X = X.copy()
-    # TODO
-    raise NotImplementedError
+    A = np.array([[np.cos(theta), -np.sin(theta)],
+                  [np.sin(theta), np.cos(theta)]])
+    result = A @ X
+    return result, A
+
+
+result, A = stretch(lynx, 1.5, 0.7)
+show(lynx, result, A, "Stretch (1.5, 0.7)")
+
+result, A = shear(lynx, 0.5, 0)
+show(lynx, result, A, "Shear (0.5, 0)")
+
+result, A = reflection(lynx, 1, 1)
+show(lynx, result, A, "Reflection (line y = x)")
+
+result, A = rotation(lynx, np.pi / 4)
+show(lynx, result, A, "Rotation 45°")
+
+result, A = stretch(lynx, -1, 1)
+show(lynx, result, A, "Stretch (-1, 1): flip left-right")
+
+result, A = stretch(lynx, 0.5, 1.5)
+show(lynx, result, A, "Stretch (0.5, 1.5)")
+
+result, A = stretch(lynx, 1, 0)
+show(lynx, result, A, "Stretch (1, 0): collapse onto x-axis")
+
+
+result, A = shear(lynx, 0, 0.5)
+show(lynx, result, A, "Shear (0, 0.5): vertical")
+
+result, A = shear(lynx, -0.5, 0)
+show(lynx, result, A, "Shear (-0.5, 0): horizontal, other way")
+
+result, A = shear(lynx, 0.5, 0.5)
+show(lynx, result, A, "Shear (0.5, 0.5): both directions")
+
+result, A = reflection(lynx, 1, 0)
+show(lynx, result, A, "Reflection (x-axis)")
+
+result, A = reflection(lynx, 0, 1)
+show(lynx, result, A, "Reflection (y-axis)")
+
+result, A = reflection(lynx, 1, -1)
+show(lynx, result, A, "Reflection (line y = -x)")
+
+result, A = rotation(lynx, -np.pi / 2)
+show(lynx, result, A, "Rotation -90°")
+
+result, A = rotation(lynx, np.pi)
+show(lynx, result, A, "Rotation 180°")
+
+result, A = rotation(lynx, np.pi / 6)
+show(lynx, result, A, "Rotation 30°")
 
 
 # %% [markdown]
-# ## Task 1. Demonstration
-# Uncomment after implementing the functions.
+# ## Task 2. Combination of Stretch, Shear and Rotation in different orders
 
 # %%
-# result, A = stretch(lynx, 1.5, 0.7)
-# show(lynx, result, A, "Stretch (1.5, 0.7)")
+def apply_in_order(X, order):
+    current = X.copy()
+    total = np.eye(2)
 
-# result, A = shear(lynx, 0.5, 0)
-# show(lynx, result, A, "Shear (0.5, 0)")
+    for name in order:
+        if name == "stretch":
+            new, A = stretch(current, 1.5, 0.7)
+        elif name == "shear":
+            new, A = shear(current, 0.5, 0)
+        elif name == "rotation":
+            new, A = rotation(current, np.pi / 4)
 
-# result, A = reflection(lynx, 1, 1)
-# show(lynx, result, A, "Reflection (line y = x)")
+        show(current, new, A, f"Step: {name}")
+        total = A @ total
+        current = new
 
-# result, A = rotation(lynx, np.pi / 4)
-# show(lynx, result, A, "Rotation 45°")
+    show(X, current, total, "Combined: " + " -> ".join(order))
+
+
+# %%
+apply_in_order(lynx, ["stretch", "shear", "rotation"])
+apply_in_order(lynx, ["rotation", "shear", "stretch"])
+apply_in_order(lynx, ["shear", "rotation", "stretch"])
+apply_in_order(lynx, ["stretch", "rotation", "shear"])
 
 # %% [markdown]
-# ### Experiments: how matrix elements affect the result
-# Try e.g. stretch with a negative value, shear (0, 0.5), rotation -pi/2 ...
-# and write a short conclusion for each.
-
-# %%
+# ### Conclusion
+# Yes, the final result depends on the order: the same three matrices give
+# different combined matrices and different pictures, because matrix
+# multiplication is not commutative (A @ B != B @ A).
