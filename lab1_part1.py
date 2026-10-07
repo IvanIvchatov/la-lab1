@@ -38,25 +38,29 @@ def multiply(A, B):
     return result
 
 
-def show(original, transformed, matrix, title="Transformation"):
-    print(f"{title}\nMatrix:\n{np.round(matrix, 3)}\n")
+def draw(ax, points, title, lim):
+    ax.fill(points[0], points[1], alpha=0.5, edgecolor="black")
+    ax.axhline(0, color="black", linewidth=0.5)
+    ax.axvline(0, color="black", linewidth=0.5)
+    ax.set_xlim(-lim, lim)
+    ax.set_ylim(-lim, lim)
+    ax.set_aspect("equal")
+    ax.grid(alpha=0.3)
+    ax.set_title(title)
+
+
+def show(original, transformed, matrix, title):
+    print(title)
+    print(np.round(matrix, 3))
+    print()
 
     lim = max(np.abs(original).max(), np.abs(transformed).max()) * 1.1
 
-    fig, axes = plt.subplots(1, 2, figsize=(10, 5))
-    for ax, pts, color, name in [
-        (axes[0], original, "grey", "Original"),
-        (axes[1], transformed, "tab:blue", title),
-    ]:
-        ax.fill(pts[0], pts[1], color=color, alpha=0.5, edgecolor="black")
-        ax.axhline(0, color="black", linewidth=0.5)
-        ax.axvline(0, color="black", linewidth=0.5)
-        ax.set_aspect("equal")
-        ax.set_xlim(-lim, lim)
-        ax.set_ylim(-lim, lim)
-        ax.grid(alpha=0.3)
-        ax.set_title(name)
-    plt.tight_layout()
+    fig = plt.figure(figsize=(10, 5))
+    ax1 = fig.add_subplot(1, 2, 1)
+    ax2 = fig.add_subplot(1, 2, 2)
+    draw(ax1, original, "Original", lim)
+    draw(ax2, transformed, title, lim)
     plt.show()
 
 
@@ -158,27 +162,57 @@ result, A = rotation(lynx, np.pi / 6)
 show(lynx, result, A, "Rotation 30°")
 
 
-def apply_in_order(X, order):
-    current = X.copy()
-    total = np.eye(2)
-
-    for name in order:
-        if name == "stretch":
-            new, A = stretch(current, 1.5, 0.7)
-        elif name == "shear":
-            new, A = shear(current, 0.5, 0)
-        elif name == "rotation":
-            new, A = rotation(current, np.pi / 4)
-
-        show(current, new, A, f"Step: {name}")
-        total = multiply(A, total)
-        current = new
-
-    show(X, current, total, "Combined: " + " -> ".join(order))
+# Висновок до Task 1:
+# Stretch: числа на діагоналі розтягують або стискають фігуру вздовж осей.
+# Більше 1 - розтягує, менше 1 - стискає, мінус - віддзеркалює, нуль - сплющує в лінію.
+# Shear: числа поза діагоналлю перекошують фігуру, як колоду карт.
+# Чим більше число, тим сильніший нахил, мінус - нахил в інший бік.
+# Reflection: фігура віддзеркалюється відносно прямої, розмір не змінюється.
+# Rotation: фігура повертається навколо центру, форма і розмір ті самі.
+# Додатний кут - проти годинникової стрілки, від'ємний - за нею.
 
 
-apply_in_order(lynx, ["stretch", "shear", "rotation"])
-apply_in_order(lynx, ["rotation", "shear", "stretch"])
-apply_in_order(lynx, ["shear", "rotation", "stretch"])
-apply_in_order(lynx, ["stretch", "rotation", "shear"])
+step1, A1 = stretch(lynx, 1.5, 0.7)
+show(lynx, step1, A1, "Step 1: stretch")
+step2, A2 = shear(step1, 0.5, 0)
+show(step1, step2, A2, "Step 2: shear")
+step3, A3 = rotation(step2, np.pi / 4)
+show(step2, step3, A3, "Step 3: rotation")
+total = multiply(A3, multiply(A2, A1))
+show(lynx, step3, total, "Combined: stretch -> shear -> rotation")
 
+
+step1, A1 = rotation(lynx, np.pi / 4)
+show(lynx, step1, A1, "Step 1: rotation")
+step2, A2 = shear(step1, 0.5, 0)
+show(step1, step2, A2, "Step 2: shear")
+step3, A3 = stretch(step2, 1.5, 0.7)
+show(step2, step3, A3, "Step 3: stretch")
+total = multiply(A3, multiply(A2, A1))
+show(lynx, step3, total, "Combined: rotation -> shear -> stretch")
+
+
+step1, A1 = shear(lynx, 0.5, 0)
+show(lynx, step1, A1, "Step 1: shear")
+step2, A2 = rotation(step1, np.pi / 4)
+show(step1, step2, A2, "Step 2: rotation")
+step3, A3 = stretch(step2, 1.5, 0.7)
+show(step2, step3, A3, "Step 3: stretch")
+total = multiply(A3, multiply(A2, A1))
+show(lynx, step3, total, "Combined: shear -> rotation -> stretch")
+
+
+step1, A1 = stretch(lynx, 1.5, 0.7)
+show(lynx, step1, A1, "Step 1: stretch")
+step2, A2 = rotation(step1, np.pi / 4)
+show(step1, step2, A2, "Step 2: rotation")
+step3, A3 = shear(step2, 0.5, 0)
+show(step2, step3, A3, "Step 3: shear")
+total = multiply(A3, multiply(A2, A1))
+show(lynx, step3, total, "Combined: stretch -> rotation -> shear")
+
+
+# Висновок до Task 2:
+# Так, результат залежить від порядку. Перетворення ті самі, а рисі вийшли різні,
+# бо при множенні матриць порядок важливий: A * B != B * A.
+# Площа рисі змінилась однаково в усіх варіантах, бо визначник завжди 1.05.
